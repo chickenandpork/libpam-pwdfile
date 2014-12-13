@@ -38,7 +38,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_CRYPT_R
+#if ( defined USE_CRYPT_R ) && (defined HAVE_CRYPT_H )
 #define _GNU_SOURCE
 #include <crypt.h>
 #else

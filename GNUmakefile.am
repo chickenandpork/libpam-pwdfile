@@ -1,0 +1,45 @@
+ACLOCAL_AMFLAGS = -I m4
+
+# if missing mkinstalldirs install-sh trigger errors, ignore the result code on the "system (cp ...)" command in automake
+# CONFIG_CLEAN_FILES = aclocal.m4 config.guess config.sub config.h config.h.in ltconfig ltmain.sh missing mkinstalldirs install-sh @PACKAGE@.spec
+CONFIG_STATUS_DEPENDENCIES = gitdescribe
+EXTRA_DIST = @PACKAGE@.spec gitdescribe
+
+seclibdir = $(libdir)/security
+seclib_LTLIBRARIES = pam_pwdfile.la
+pam_pwdfile_la_SOURCES = pam_pwdfile.c md5_broken.c md5_crypt_broken.c bigcrypt.c
+pam_pwdfile_la_CPPFLAGS = -DHIGHFIRST -D'MD5Name(x)=Broken\#\#x' -DUSE_CRYPT_R -D_FILE_OFFSET_BITS=64 
+pam_pwdfile_la_CFLAGS = -Wall -Wformat-security -fPIC -fvisibility=hidden
+pam_pwdfile_la_LDFLAGS = -module
+
+
+changelog-from-git: changelog
+	{ git log --decorate $(shell head -1 changelog | cut -d\  -f2).. | vipe; echo; cat changelog; } | sponge changelog
+
+
+
+if HAVE_GIT
+gitdescribe: .git/index
+	git describe > $@
+endif HAVE_GIT
+
+
+if HAVE_RPMBUILD
+srpm: distcheck
+	@mkdir -p $$(rpm --eval '%{_srcrpmdir}')
+	@RPMBUILD@ -ts $(PACKAGE)-$(VERSION).tar.bz2
+if DO_SUDOPOSTMOVE
+	mv -f $$(rpm --eval '%{_srcrpmdir}')/@PACKAGE@-$$(rpm --qf '%{VERSION}\n' -q --specfile @PACKAGE@.spec |head -1)-$$(rpm --qf '%{RELEASE}\n' -q --specfile @PACKAGE@.spec |head -1).src.rpm @SUDOPOSTMOVE@
+endif   DO_SUDOPOSTMOVE
+
+if HAVE_GIT
+re-dist-bzip2: gitdescribe
+	rm -f @PACKAGE@.spec $(PACKAGE)-$(VERSION).tar.bz2
+	touch configure
+	$(MAKE) dist-bzip2
+rpm: re-dist-bzip2
+else
+rpm: dist-bzip2
+endif HAVE_GIT_FALSE
+	@RPMBUILD@ --define 'skipcheck 1' -ta $(PACKAGE)-$(VERSION).tar.bz2
+endif

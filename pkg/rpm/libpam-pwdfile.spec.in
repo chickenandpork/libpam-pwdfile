@@ -1,0 +1,36 @@
+Summary: PAM module allowing authentication via an /etc/passwd-like file
+Name: @PACKAGE@
+Version: @VERSION@
+Release: @BUILDID@
+License: GPL
+# NOTE: the upstream offers either BSD-Like or GPL; having licensing issues with BSD-like, I'm publicizing a GPL license.  Upstream doesn't specify GPL2-vs-GPL3.
+Group: System/Auth
+URL: https://github.com/tiwe-de/libpam-pwdfile/
+Source0: http://chickenandporn.com/r/%{name}-%{version}.tar.bz2
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+
+#dammit, I hate the debug packages -- they even makes no sense in a non-executable payload
+%define debug_package %nil
+
+%description
+This pam module provides the authentication service using an own set of user/password pairs.
+
+%prep
+%setup
+
+%build
+%configure %{?configure_additional:%{configure_additional}} && make
+
+%install
+make install DESTDIR=%{buildroot}
+
+%clean
+%{__rm} -rf %{buildroot}
+
+%files
+%defattr(-, root, root, 0644)
+
+
+%changelog
+* Fri Dec 15 2014 Allan Clark <allanc@chickenandporn.com> - 1.0-1
+- Initial package (cloned from https://github.com/tiwe-de/libpam-pwdfile commit e29d26e77d 2014-03-06 by Timo Weingärtner (tiwe-de))
