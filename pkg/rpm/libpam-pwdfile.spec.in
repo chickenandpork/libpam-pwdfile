@@ -20,11 +20,11 @@ This pam module provides the authentication service using an own set of user/pas
 %setup
 
 %build
-%configure %{?configure_additional:%{configure_additional}} && make
+%configure %{?configure_additional:%{configure_additional}} libdir=/%{_lib} && make
 
 %install
 make install DESTDIR=%{buildroot}
-rm -f %{buildroot}/%{_libdir}/security/pam_pwdfile.la
+rm -f %{buildroot}/%{_lib}/security/pam_pwdfile.la
 
 
 %clean
@@ -32,10 +32,10 @@ rm -f %{buildroot}/%{_libdir}/security/pam_pwdfile.la
 
 %files
 %defattr(-, root, root, 0644)
-%{_libdir}/security/pam_pwdfile.a
-%{_libdir}/security/pam_pwdfile.so
-%{_libdir}/security/pam_pwdfile.so.0
-%{_libdir}/security/pam_pwdfile.so.0.0.0
+/%{_lib}/security/pam_pwdfile.a
+/%{_lib}/security/pam_pwdfile.so
+/%{_lib}/security/pam_pwdfile.so.0
+/%{_lib}/security/pam_pwdfile.so.0.0.0
 
 
 
