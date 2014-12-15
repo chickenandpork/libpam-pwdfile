@@ -66,7 +66,9 @@
 
 #define PAM_SM_AUTH
 #include <security/pam_modules.h>
+#ifdef HAVE_SECURITY_PAM_EXT_H
 #include <security/pam_ext.h>
+#endif
 
 #include "md5.h"
 #include "bigcrypt.h"

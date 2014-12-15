@@ -1,28 +1,50 @@
 ACLOCAL_AMFLAGS = -I m4
 
-# if missing mkinstalldirs install-sh trigger errors, ignore the result code on the "system (cp ...)" command in automake
-# CONFIG_CLEAN_FILES = aclocal.m4 config.guess config.sub config.h config.h.in ltconfig ltmain.sh missing mkinstalldirs install-sh @PACKAGE@.spec
+# NOTE gitdescribe is used with the "git describe" command to effectively
+# auto-increment a patch-level of the release based on a tag when the first
+# version is cloned from upstream
 CONFIG_STATUS_DEPENDENCIES = gitdescribe
 EXTRA_DIST = @PACKAGE@.spec gitdescribe
 
 seclibdir = $(libdir)/security
 seclib_LTLIBRARIES = pam_pwdfile.la
-pam_pwdfile_la_SOURCES = pam_pwdfile.c md5_broken.c md5_crypt_broken.c bigcrypt.c
-pam_pwdfile_la_CPPFLAGS = -DHIGHFIRST -D'MD5Name(x)=Broken\#\#x' -DUSE_CRYPT_R -D_FILE_OFFSET_BITS=64 
+pam_pwdfile_la_SOURCES = pam_pwdfile.c bigcrypt.c bigcrypt.h
+pam_pwdfile_la_CPPFLAGS = -DUSE_CRYPT_R -D_FILE_OFFSET_BITS=64 
 pam_pwdfile_la_CFLAGS = -Wall -Wformat-security -fPIC -fvisibility=hidden
 pam_pwdfile_la_LDFLAGS = -module
+pam_pwdfile_la_LIBADD = libbroken.a
 
+# NOTE: in the original upstream md5.c and md5_crypt.c are never directly
+# built, but only built with the additional -DHIGHFIRST and -DMD5Name flags. 
+# In order to build these with different flags without gauging the effect of
+# these CFLAGS on the other sources, I (allanc@chickenandporn) am including
+# them as a build-time library which is then linked in at the final delivery
+noinst_LIBRARIES = libbroken.a
+libbroken_a_SOURCES = md5.c md5_crypt.c md5.h
+libbroken_a_CPPFLAGS = -DUSE_CRYPT_R -D_FILE_OFFSET_BITS=64 
+libbroken_a_CFLAGS = -DHIGHFIRST -D'MD5Name(x)=Broken\#\#x' -Wall -Wformat-security -fPIC -fvisibility=hidden
+
+
+# NOTE: uses upstream-specific tools that I (allanc@chickenandporn) cannot
+# yet locate
 
 changelog-from-git: changelog
 	{ git log --decorate $(shell head -1 changelog | cut -d\  -f2).. | vipe; echo; cat changelog; } | sponge changelog
 
 
 
+# NOTE: the following, based on a "git tag -a", auto-increments for each
+# commit a version via configure.ac "BUILDID" determination
 if HAVE_GIT
 gitdescribe: .git/index
 	git describe > $@
 endif HAVE_GIT
 
+
+# NOTE: I use this to automate my build: 
+# autoreconf -vfi
+# ./configure --with-sudopostmove=(RPM target dir)
+# make srpm
 
 if HAVE_RPMBUILD
 srpm: distcheck

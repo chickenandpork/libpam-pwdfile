@@ -8,6 +8,7 @@ Group: System/Auth
 URL: https://github.com/tiwe-de/libpam-pwdfile/
 Source0: http://chickenandporn.com/r/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires: pam-devel
 
 #dammit, I hate the debug packages -- they even makes no sense in a non-executable payload
 %define debug_package %nil
@@ -23,12 +24,19 @@ This pam module provides the authentication service using an own set of user/pas
 
 %install
 make install DESTDIR=%{buildroot}
+rm -f %{buildroot}/%{_libdir}/security/pam_pwdfile.la
+
 
 %clean
 %{__rm} -rf %{buildroot}
 
 %files
 %defattr(-, root, root, 0644)
+%{_libdir}/security/pam_pwdfile.a
+%{_libdir}/security/pam_pwdfile.so
+%{_libdir}/security/pam_pwdfile.so.0
+%{_libdir}/security/pam_pwdfile.so.0.0.0
+
 
 
 %changelog

@@ -17,7 +17,9 @@
  */
 
 #include <string.h>
+#ifdef HAVE_BYTESWAP_H
 #include <byteswap.h>
+#endif
 #include "md5.h"
 
 #ifndef HIGHFIRST

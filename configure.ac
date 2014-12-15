@@ -17,6 +17,11 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 LT_INIT
 
+case ${build_os} in
+darwin*)
+	CFLAGS="${CFLAGS} -mmacosx-version-min=10.10" ;;
+esac
+
 dnl ***********************************************************************
 dnl Checks for programs used during test, markup, diagrams. etc.
 dnl ***********************************************************************
@@ -56,7 +61,7 @@ AC_SUBST([SUDOPOSTMOVE], ${WITH_SUDOPOSTMOVE})
 dnl AC_CHECK_LIB(rpm, rpmReadPackageFile,,AC_MSG_ERROR(rpm lib not found))
 AC_CHECK_LIB(crypt, rpmHeaderGetEntry)
 AC_CHECK_LIB(pam, headerGetEntry)
-AC_CHECK_HEADERS(crypt.h security/pam_appl.h)
+AC_CHECK_HEADERS([crypt.h byteswap.h security/pam_appl.h security/pam_ext.h])
 
 
 
