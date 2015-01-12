@@ -129,6 +129,8 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	    legacy_crypt = 1;
     }
     
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "pwdfile=%s %sflock %sdelay (%sdebug) (%slegacy_crypt)",pwdfilename,(use_flock?"":"no"), (use_delay?"":"no"), (debug?"":"no"), (legacy_crypt ? "yes:":"no:"));
+
 #ifdef HAVE_PAM_FAIL_DELAY
     if (use_delay) {
 	if (debug) pam_syslog(pamh, LOG_DEBUG, "setting fail delay");
@@ -199,7 +201,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	return PAM_USER_UNKNOWN;
     }
     
-    if (debug) pam_syslog(pamh, LOG_DEBUG, "got crypted password == '%s'", stored_crypted_password);
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "read crypted password from file == '%s'", stored_crypted_password);
     
 #ifdef USE_CRYPT_R
     crypt_buf.initialized = 0;
@@ -213,12 +215,16 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	return PAM_AUTH_ERR;
     }
     
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "calulated crypted password == '%s'", crypted_password);
+
     if (legacy_crypt && strcmp(crypted_password, stored_crypted_password)) {
 	if (!strncmp(stored_crypted_password, "$1$", 3))
 	    crypted_password = Brokencrypt_md5(password, stored_crypted_password);
 	else
 	    crypted_password = bigcrypt(password, stored_crypted_password);
     }
+
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "recalulated crypted password == '%s'", crypted_password);
 
     if (strcmp(crypted_password, stored_crypted_password)) {
 	pam_syslog(pamh, LOG_NOTICE, "wrong password for user %s", name);
